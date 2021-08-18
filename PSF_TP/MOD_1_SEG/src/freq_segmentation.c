@@ -21,6 +21,10 @@ void seg_set(q15_t* FFT)
 	//SEGMENTACION POR FRECUENCIA
 	for (uint16_t i=0;i<FREQ_RANGE-1;i++)
 	{
+		//ZERO PADDING
+		arm_fill_q15(0,mod1_signals[i],FFT_LEN);
+
+
 		//  Si 1024 son fs/2 entonces X es F0/F1/...
 		index_min = (2*FFT_LEN*Freq_Ranges[i])/SUB_SAMPLING_FREQ;
 		index_max = (2*FFT_LEN*Freq_Ranges[i+NEXT])/SUB_SAMPLING_FREQ;
@@ -34,11 +38,18 @@ void seg_set(q15_t* FFT)
 			index++;
 		}
 
+		/*
 		//RELLENAMOS CON CEROS
 		for(uint16_t j= index;j<FFT_LEN;j++)
 		{
 			mod1_signals[i][j] = 0;
 		}
+		*/
+
+		//FINAL DE MODULO 1  - FILTRADO
+
+		//INICIO DE MODULO 2 - SUAVIZAR
+
 	}
 }
 
