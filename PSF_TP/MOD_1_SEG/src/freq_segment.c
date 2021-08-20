@@ -1,23 +1,17 @@
+
+
+
+
+
 #include "sapi.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "../inc/freq_segment.h"
 #include "../inc/segmentation.h"
 #include "../inc/oversampling.h"
+#include "arm_math.h"
+#include "arm_const_structs.h"
 
-/***************************************************/
-/*
- *           ESTRUCTURA DE PAQUETE UART
- */
-/***************************************************/
-typedef struct header_struct
-{
-   char		pre[8];
-   uint32_t id;
-   uint16_t N;
-   uint16_t fs;
-   char	pos[4];
-} header_struct_t;
 
 /***************************************************/
 /*
@@ -25,17 +19,21 @@ typedef struct header_struct
  */
 /***************************************************/
 
+extern header_struct_t header;
+
 int main ( void ) {
 
-	uint16_t	frenquency_bands[] = {F0,F1, F2, F3, F4};
+	uint16_t	frenquency_bands[] = {F0, F1, F2, F3, F4};
 
 	int16_t 	samples[N_DOWNSAMPLING];
-	uint16_t	fs = N_DOWNSAMPLING * (CYCLES/K_CONSTANT) / (MIN_BPM / BPM_TO_HZ);
+	//fs=N_DOWNSAMPLING /CYCLES/K_CONSTANT/(MIN_BPM /BPM_TO_HZ);
+	uint16_t	fs = 2792;
 
-	int16_t 	segmented_signals[N_FREQUENCIES-1][N_DOWNSAMPLING];
-
-	header_struct_t header={"*header*",0,N_DOWNSAMPLING,fs,"end*"};
-
+	strcpy(header.pre,"*header*");
+	header.id=0;
+	header.N=N_DOWNSAMPLING;
+	header.fs = fs;
+	strcpy(header.pos,"end*");
 
     /************ Configuraciones EDU-CIAA *************/
     boardConfig		 (							);
@@ -54,13 +52,10 @@ int main ( void ) {
     	/*    OVERSAMPLING    */
     	oversampling( samples, N_DOWNSAMPLING, N_OVERSAMPLE, fs);
 
-    	/***----*** MOD 1 ***----***/
+    	/***----*** MOD BPM ***----***/
  	    /*      FREQUENCY SEGMENTATION    */
-    	freq_segmentation (samples,segmented_signals,frenquency_bands, fs);
-
-    	/***----*** MOD 2 ***----***/
- 	    /*      SMOOOTHING    */
-    	//SMOOTHING
+    	/*      SMOOOTHING    */
+    	freq_segmentation (samples,frenquency_bands, fs);
 	}
 }
 

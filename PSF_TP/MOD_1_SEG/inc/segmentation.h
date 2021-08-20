@@ -29,6 +29,6 @@
  *          Prototipos de Funciones
  */
 /***************************************************/
-void freq_segmentation( q15_t* samples, q15_t seg_signlas[N_FREQUENCIES-1][N_DOWNSAMPLING],uint16_t* freq_range, uint16_t fs);
+void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs);
 
 #endif

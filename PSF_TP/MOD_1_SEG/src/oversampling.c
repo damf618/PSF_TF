@@ -4,6 +4,10 @@
 #include "arm_const_structs.h"
 #include "../inc/oversampling_filter.h"
 #include "../inc/oversampling.h"
+#include "../inc/freq_segment.h"
+
+extern header_struct_t header;
+
 
 void oversampling( q15_t* down, uint16_t n_down, uint8_t over_factor, uint16_t fs)
 {
@@ -18,20 +22,31 @@ void oversampling( q15_t* down, uint16_t n_down, uint8_t over_factor, uint16_t f
 
 	 while(!data_acquired)
 	 {
+		 //TODO TESTIGO CONVOLUCION
+		 //if(sample<n_down)
+		 //		 uartWriteByteArray ( UART_USB ,(uint8_t* )&down_sample[sample], sizeof(down_sample[0]) );
+
 		 adc[sample]          = ((int16_t )adcRead(CH1)-512)<<(6);
+
 
 		 if ( ++sample>=n_down*over_factor )
 		 {
 			 gpioToggle ( LEDR );
 
 			 //---------------filtrado antialias en digitial--------------------------
-			 arm_conv_fast_q15  ( adc, n_down*over_factor,h,OVER_LENGTH,oversampling_filtered);
+			 arm_conv_fast_q15  ( adc, n_down*over_factor,over,OVER_LENGTH,oversampling_filtered);
 
 			 //---------------downsampling--------------------------
 			 for(int i=0;i<n_down;i++)
 			 {
 				 down_sample[i]=oversampling_filtered[i*over_factor+garbageOffset];
+				 //TODO SENAL DOWNSAMPLED
+				 //uartWriteByteArray ( UART_USB ,(uint8_t* )&down_sample[i], sizeof(down_sample[0]) );
 			 }
+
+			 //TODO CUALQUIER VALIDACION
+	         //header.id++;
+	         //uartWriteByteArray ( UART_USB ,(uint8_t*)&header ,sizeof(struct header_struct ));
 
 			 data_acquired = TRUE;
 			 sample = 0;

@@ -45,4 +45,29 @@ el numero de muestras a 2048, por lo que obtenemos que:
 #define F4 					1600					//Rango 4 Instrumentos Alta / Media  Freq
 #define	N_FREQUENCIES		5
 
+/***************************************************/
+/*
+ *           ESTRUCTURA DE PAQUETE UART
+ */
+/***************************************************/
+
+
+typedef struct header_struct
+{
+   char		pre[8];
+   uint32_t id;
+   uint16_t N;
+   uint16_t fs;
+   char	pos[4];
+} header_struct_t;
+
+/***************************************************/
+/*
+ *           VARIABLES GLOBALES
+ */
+/***************************************************/
+
+
+header_struct_t header;
+
 #endif	//OVER_SAMPLING
