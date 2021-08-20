@@ -50,7 +50,7 @@ void conv_q15(q15_t* signal, q15_t* filter, uint32_t M )
 	q15_t 	 signal_convolution  [ N_DOWNSAMPLING+M-1  ];
 	uint16_t garbage_index = (M+N_DOWNSAMPLING-1)/2-N_DOWNSAMPLING/2;
 
-	arm_conv_q15(signal, N_DOWNSAMPLING,hanning,M,signal_convolution);
+	arm_conv_fast_q15(signal, N_DOWNSAMPLING,hanning,M,signal_convolution);
 
 	//Extraccion de informacion util de la convolucion
 	//TODO Podria realizarlo con un memcpy?
@@ -60,7 +60,7 @@ void conv_q15(q15_t* signal, q15_t* filter, uint32_t M )
 	}
 }
 
-void cfft_q15(q15_t* signal,uint8_t dir)
+void cfft_q15(q15_t* signal, q15_t*samples)
 {
 	arm_cfft_instance_q15 CS;
 	q15_t 		samples_fft[2*N_DOWNSAMPLING];
@@ -72,13 +72,21 @@ void cfft_q15(q15_t* signal,uint8_t dir)
 	}
 	init_cfft_instance ( &CS,N_DOWNSAMPLING        );
     arm_cfft_q15       ( &CS ,samples_fft ,0 ,1 );
-    init_cfft_instance ( &CS,N_DOWNSAMPLING        );
-    arm_cfft_q15       ( &CS ,samples_fft ,1 ,1 );
+    memcpy(samples,samples_fft,sizeof(samples_fft));
+}
+
+void cifft_q15(q15_t* signal_fft,q15_t* signal)
+{
+	arm_cfft_instance_q15 CS;
+
+	init_cfft_instance ( &CS,N_DOWNSAMPLING        );
+    arm_cfft_q15       ( &CS ,signal_fft ,1 ,1 );
     for(uint16_t i =0;i<N_DOWNSAMPLING;i++)
     {
-    	signal[i]=samples_fft[i*2];
+    	signal[i]=signal_fft[i*2];
     }
 }
+
 
 void rfft_q15(q15_t* signal,uint8_t dir)
 {
@@ -99,6 +107,8 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 	q15_t 		seg_fft[2*N_DOWNSAMPLING];
 	float32_t	calc_aux  = 0;
 
+	q15_t 		complex[2*N_DOWNSAMPLING];
+
 	/*---*** MODULO2:ENVOLVENTE  ***---*/
 
 
@@ -106,20 +116,19 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 	q15_t derivative_filter[]={1,-1};
 
 	/*** RFFT ***/
-	arm_rfft_instance_q15 S;
+	/*arm_rfft_instance_q15 S;
 	q15_t samples_fft[2*N_DOWNSAMPLING];
 	arm_rfft_init_q15(&S,N_DOWNSAMPLING,0,1); // inicializa una estructira que usa la funcion fft para procesar los datos. Notar el /2 para el largo
 	arm_rfft_q15( &S,samples,samples_fft);
+	*/
+	cfft_q15(samples,complex);
 
 	/*** FILTRADO EN CORTE POR FRECUENCIAS ***/
-
+/*
 	//Eliminado de componente DC
-	samples_fft[0] = 0;
-	samples_fft[1] = 0;
-
-	seg_fft[0]=samples_fft[0];
-	seg_fft[1]=samples_fft[1];
-
+	complex[0] = 0;
+	complex[1] = 0;
+*/
 	//BORRADO EFICIENTE DE AMBOS EXTREMOS
 	for(uint8_t j=1;j<N_FREQUENCIES;j++)
 	{
@@ -131,10 +140,10 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		{
 			if((init_freq<=i)&&(i<cut_freq))
 			{
-				seg_fft[i*2] 						= samples_fft[i*2];							//Guardado frente parte real
-				seg_fft[i*2+1] 						= samples_fft[i*2+1];						//Guardado frente parte imaginaria
-				seg_fft[(N_DOWNSAMPLING-1)*2-i*2] 	= samples_fft[(N_DOWNSAMPLING-1)*2-i*2];	//Guardado fondo  parte real
-				seg_fft[(N_DOWNSAMPLING-1)*2-i*2+1]	= samples_fft[(N_DOWNSAMPLING-1)*2-i*2+1];	//Guardado fondo  parte imaginaria
+				seg_fft[i*2] 						= complex[i*2];							//Guardado frente parte real
+				seg_fft[i*2+1] 						= complex[i*2+1];						//Guardado frente parte imaginaria
+				seg_fft[(N_DOWNSAMPLING-1)*2-i*2] 	= complex[(N_DOWNSAMPLING-1)*2-i*2];	//Guardado fondo  parte real
+				seg_fft[(N_DOWNSAMPLING-1)*2-i*2+1]	= complex[(N_DOWNSAMPLING-1)*2-i*2+1];	//Guardado fondo  parte imaginaria
 			}
 			else
 			{
@@ -145,8 +154,9 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 			}
 		}
 		/*** IFFT ***/
-		arm_rfft_init_q15 ( &S,N_DOWNSAMPLING,1,1);
-		arm_rfft_q15	  ( &S,seg_fft, samples);	// Parte real de la transformada inversa de Fourier
+		//arm_rfft_init_q15 ( &S,N_DOWNSAMPLING,1,1);
+		//arm_rfft_q15	  ( &S,seg_fft, samples);	// Parte real de la transformada inversa de Fourier
+		cifft_q15(seg_fft, samples);
 
 		//TODO VALIDACION SEGMENTACION DE FRECUENCIAS
 		/*	gpioToggle ( LEDR );
@@ -177,7 +187,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		}
 
 		//TODO VALIDACION RECTIFICACION
-		gpioToggle ( LEDR );
+		/*gpioToggle ( LEDR );
 		for(uint16_t i = 0;i<N_DOWNSAMPLING;i++)
 		{
 			uartWriteByteArray ( UART_USB ,(uint8_t* )&samples[i], sizeof(samples[0]) );
@@ -186,7 +196,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		header.id++;
 		uartWriteByteArray ( UART_USB ,(uint8_t*)&header ,sizeof(struct header_struct ));
 		//}
-	break;
+	break;*/
 
 		//CONVOLUCION CON FILTRO 1/2 VENTANA HANNING
 		conv_q15(samples,hanning,HANNING_LENGTH);
@@ -231,7 +241,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 			}
 		}
 		//TODO VALIDACION DERIVADA
-		/*
+
 		gpioToggle ( LEDR );
 		for(uint16_t i = 0;i<N_DOWNSAMPLING;i++)
 		{
@@ -241,7 +251,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		header.id++;
 		uartWriteByteArray ( UART_USB ,(uint8_t*)&header ,sizeof(struct header_struct ));
 		//}
-	break;*/
+	break;
 
 		/***----*** MOD 4 ***----***/
 		/*      COMB FILTER     */
