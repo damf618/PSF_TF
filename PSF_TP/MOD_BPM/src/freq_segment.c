@@ -23,7 +23,7 @@ extern header_struct_t header;
 
 int main ( void ) {
 
-	uint16_t	frenquency_bands[] = {F0, F1, F2, F3, F4};
+	uint16_t	frenquency_bands[] = {F0, F2, F2, F3, F4};
 
 	int16_t 	samples[N_DOWNSAMPLING];
 	//fs=N_DOWNSAMPLING /CYCLES/K_CONSTANT/(MIN_BPM /BPM_TO_HZ);

@@ -50,7 +50,7 @@ void conv_q15(q15_t* signal, q15_t* filter, uint32_t M )
 	q15_t 	 signal_convolution  [ N_DOWNSAMPLING+M-1  ];
 	uint16_t garbage_index = (M+N_DOWNSAMPLING-1)/2-N_DOWNSAMPLING/2;
 
-	arm_conv_fast_q15(signal, N_DOWNSAMPLING,hanning,M,signal_convolution);
+	arm_conv_fast_q15(signal, N_DOWNSAMPLING,filter,M,signal_convolution);
 
 	//Extraccion de informacion util de la convolucion
 	//TODO Podria realizarlo con un memcpy?
@@ -113,7 +113,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 
 
 	/*---*** MODULO3:DERIVACION & RECTIFICACION 1/2 ONDA  ***---*/
-	q15_t derivative_filter[]={1,-1};
+	q15_t derivative_filter[]={1,-11};
 
 	/*** RFFT ***/
 	/*arm_rfft_instance_q15 S;
@@ -202,7 +202,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		conv_q15(samples,hanning,HANNING_LENGTH);
 
 		//TODO VALIDACION FILTRO_HANNING
-		/*gpioToggle ( LEDR );
+		gpioToggle ( LEDR );
 		for(uint16_t i = 0;i<N_DOWNSAMPLING;i++)
 		{
 			uartWriteByteArray ( UART_USB ,(uint8_t* )&samples[i], sizeof(samples[0]) );
@@ -211,7 +211,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		header.id++;
 		uartWriteByteArray ( UART_USB ,(uint8_t*)&header ,sizeof(struct header_struct ));
 		//}
-	break;*/
+	break;
 
 		/***----*** MOD 3 ***----***/
 		/*      DERIVATIVE HALF-RECT   */
@@ -229,7 +229,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		header.id++;
 		uartWriteByteArray ( UART_USB ,(uint8_t*)&header ,sizeof(struct header_struct ));
 		//}
-	break;*/
+	break;
 
 		//RECTIFICACION DE 1/2 ONDA
 		for (uint16_t i =0;i<N_DOWNSAMPLING;i++)

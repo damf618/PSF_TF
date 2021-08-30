@@ -65,6 +65,14 @@ env_signals4 = np.zeros(N).astype("complex")
 env_signals5 = np.zeros(N).astype("complex")
 env_signals6 = np.zeros(N).astype("complex")
 
+diff_rect_signal = np.zeros(9600).astype("complex")
+diff_rect_signals1 = np.zeros(9600).astype("complex")
+diff_rect_signals2 = np.zeros(9600).astype("complex")
+diff_rect_signals3 = np.zeros(9600).astype("complex")
+diff_rect_signals4 = np.zeros(9600).astype("complex")
+diff_rect_signals5 = np.zeros(9600).astype("complex")
+diff_rect_signals6 = np.zeros(9600).astype("complex")
+
 #--------------------------------------
 
 #------------Escpectro--------------------------
@@ -146,14 +154,14 @@ time_signals6_ext = np.concatenate((time_signals6,np.zeros(M-1)))
 
 filter_h     = np.concatenate((filter_h,np.zeros(N-1)))
 
-extra_t = np.arange(N,N+M-1,1)
-extra_t = extra_t / fs
-copyData = np.concatenate((tData,extra_t))
+#extra_t = np.arange(N,N+M-1,1)
+#extra_t = extra_t / fs
+#copyData = np.concatenate((tData,extra_t))
 
-figw    = plt.figure ( 10 )
-figwt      = figw.add_subplot ( 1,1,1  )
-origfftLn,  = plt.plot( copyData,filter_h,'b-o',linewidth=4,alpha=0.5,label="original") 
-figwt.grid( True )
+#figw    = plt.figure ( 10 )
+#figwt      = figw.add_subplot ( 1,1,1  )
+#origfftLn,  = plt.plot( copyData,filter_h,'b-o',linewidth=4,alpha=0.5,label="original") 
+#figwt.grid( True )
 
 #
 # RECTIFIACION DE ONDA COMPLETA
@@ -194,7 +202,7 @@ env_signals6 = np.fft.fft(time_signals6_ext)
 filter_h     = np.fft.fft(filter_h)
 
 #Teorema de Convolucion
-K=1/480*(0.515/0.55)
+K=1#/480*(0.515/0.55)
 env_signal   = np.fft.ifft(K*env_signal*filter_h)
 
 env_signals1 = np.fft.ifft(K*env_signals1*filter_h)
@@ -205,21 +213,253 @@ env_signals5 = np.fft.ifft(K*env_signals5*filter_h)
 env_signals6 = np.fft.ifft(K*env_signals6*filter_h)
 
 
-#fs = 8000 por lo que en 1 segundo equivale a 8 mil puntos
+# Diferenciacion
+diferenciador = np.array(([1,-1]))
 
-#FILTRO COMB PARA 180BPM
-#180bpm  ->  3Hz
+diff_signal = np.convolve(env_signal,diferenciador)
 
-#FILTRO COMB PARA 200BPM
-#200bpm  ->  3.33Hz 1.11 
+diff_signals1 = np.convolve(env_signals1,diferenciador)
+diff_signals2 = np.convolve(env_signals2,diferenciador)
+diff_signals3 = np.convolve(env_signals3,diferenciador)
+diff_signals4 = np.convolve(env_signals4,diferenciador)
+diff_signals5 = np.convolve(env_signals5,diferenciador)
+diff_signals6 = np.convolve(env_signals6,diferenciador)
 
-#FILTRO COMB PARA 220BPM
-#220bpm  ->  3.666Hz
+print(len(diff_signal))
 
-#FILTRO COMB PARA 220BPM
-#240bpm  ->  4Hz
+#Rectificacion de Media Onda
+for i in range(len(diff_signal)):
+    if(diff_signal[i]<0):
+        diff_rect_signal[i] = 0
+    else:
+        diff_rect_signal[i] = diff_signal[i]
+    
+    if(diff_signals1[i]<0):
+        diff_rect_signals1[i] = 0
+    else:
+        diff_rect_signals1[i] = diff_signals1[i]
+
+    if(diff_signals2[i]<0):
+        diff_rect_signals2[i] = 0
+    else:
+        diff_rect_signals2[i] = diff_signals2[i]
+
+    if(diff_signals3[i]<0):
+        diff_rect_signals3[i] = 0
+    else:
+        diff_rect_signals3[i] = diff_signals3[i]    
+    if(diff_rect_signals3[i]<0):
+        diff_rect_signals3[i] = 0
+
+    if(diff_signals4[i]<0):
+        diff_rect_signals4[i] = 0
+    else:
+        diff_rect_signals4[i] = diff_signals4[i]
+
+    if(diff_signals5[i]<0):
+            diff_rect_signals5[i] = 0
+    else:
+        diff_rect_signals5[i] = diff_signals5[i]
+    
+    if(diff_signals6[i]<0):
+            diff_rect_signals6[i] = 0
+    else:
+        diff_rect_signals6[i] = diff_signals6[i]
 
 
+#fs -> 8000
+# El filtro Comb debe debe ser de 1 segundo de duracion es decir 8000 Muestras
+bpm1_comb = np.zeros(N)
+#bpm2_comb = np.zeros(N)
+#bpm3_comb = np.zeros(N)
+
+#180 BPM --> 3 Impulsos espaciados 1/8000 * 
+index1 = int((N/3))
+index2 = 2*index1
+index3 = 3*index1 - 1
+bpm1_comb[index1] = 1
+bpm1_comb[index2] = 1
+bpm1_comb[index3] = 1
+
+# Comb Filter 180
+
+comb1_signal = np.convolve(diff_rect_signal,bpm1_comb)
+
+comb1_signals1 = np.convolve(diff_rect_signals1,bpm1_comb)
+comb1_signals2 = np.convolve(diff_rect_signals2,bpm1_comb)
+comb1_signals3 = np.convolve(diff_rect_signals3,bpm1_comb)
+comb1_signals4 = np.convolve(diff_rect_signals4,bpm1_comb)
+comb1_signals5 = np.convolve(diff_rect_signals5,bpm1_comb)
+comb1_signals6 = np.convolve(diff_rect_signals6,bpm1_comb)
+
+
+#M-1 primera convolucion, pero la derivada es una convolucion a 2 por lo que....no requiero de 1
+extra_t = np.arange(N,(N+M-1)+1,1)
+extra_t = extra_t/fs
+tData = np.concatenate((tData,extra_t)) 
+
+
+#FIGURA 4 
+fig4    = plt.figure ( 3 )
+fig4.suptitle('Paso 5: Dericada de la Envolvente de la senial', fontsize=16)
+
+# IFFT ORIGINAL DE LA SIGNAL
+dif     = fig4.add_subplot ( 3,1,1 )
+dif.set_title("Senial Original Envolvente Derivada",rotation=0,fontsize=10,va="center")
+difLn,  = plt.plot( tData,diff_signal,'b-o',linewidth=4,alpha=0.5,label="time inverse") 
+dif.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif.grid( True )
+
+
+# IFFT SEGMENTADA DE LA SIGNAL
+dif1      = fig4.add_subplot ( 3,3,4 )
+dif1.set_title("Senial Segmentada1 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif1Ln,    = plt.plot( tData,diff_signals1,'r',linewidth = 5 , label="time_s 1" )
+dif1.set_xlim ( 0.5    ,0.52 )
+dif1.grid( True )
+
+dif2      = fig4.add_subplot ( 3,3,5 )
+dif2.set_title("Senial Segmentada2 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif2Ln,    = plt.plot( tData,diff_signals2,'g',linewidth = 5 , label="time_s 2" )
+dif2.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif2.grid( True )
+
+dif3      = fig4.add_subplot ( 3,3,6 )
+dif3.set_title("Senial Segmentada3 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif3Ln,    = plt.plot( tData,diff_signals3,'b',linewidth = 5 , label="time_s 3" )
+dif3.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif3.grid( True )
+
+dif4      = fig4.add_subplot ( 3,3,7 )
+dif4.set_title("Senial Segmentada4 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif4Ln,    = plt.plot( tData,diff_signals4,'c',linewidth = 5 , label="time_s 4" )
+dif4.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif4.grid( True )
+
+dif5      = fig4.add_subplot ( 3,3,8 )
+dif5.set_title("Senial Segmentada5 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif5Ln,    = plt.plot( tData,diff_signals5,'m',linewidth = 5 , label="time_s 5" )
+dif5.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif5.grid( True )
+
+dif6      = fig4.add_subplot ( 3,3,9 )
+dif6.set_title("Senial Segmentada6 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif6Ln,    = plt.plot( tData,diff_signals6,'k',linewidth = 5 , label="time_s 6" )
+dif6.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif6.grid( True )
+
+
+#FIGURA 3 
+fig3    = plt.figure ( 4 )
+fig3.suptitle('Paso 6: Rectificacion de la derivada de la senial', fontsize=16)
+
+# ENV ORIGINAL DE LA SIGNAL
+origenv     = fig3.add_subplot ( 3,1,1 )
+origenv.set_title("Diff-Rect Senial Original",rotation=0,fontsize=10,va="center")
+origenvLn,  = plt.plot( tData,diff_rect_signal,'b-o',linewidth=4,alpha=0.5,label="time inverse") 
+origenv.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+origenv.grid( True )
+
+
+# ENV SEGMENTADA DE LA SIGNAL
+envAxe1      = fig3.add_subplot ( 3,3,4 )
+envAxe1.set_title("Diff-Rect Senial Segmentada1",rotation=0,fontsize=10,va="center")
+envs1Ln,    = plt.plot( tData,diff_rect_signals1,'r',linewidth = 5 , label="time_s 1" )
+envAxe1.set_xlim ( 0.5    ,0.52 )
+envAxe1.grid( True )
+
+envAxe2      = fig3.add_subplot ( 3,3,5 )
+envAxe2.set_title("Diff-Rect Senial Segmentada2",rotation=0,fontsize=10,va="center")
+envs2Ln,    = plt.plot( tData,diff_rect_signals2,'g',linewidth = 5 , label="time_s 2" )
+envAxe2.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe2.grid( True )
+
+envAxe3      = fig3.add_subplot ( 3,3,6 )
+envAxe3.set_title("Diff-Rect Senial Segmentada3",rotation=0,fontsize=10,va="center")
+envs3Ln,    = plt.plot( tData,diff_rect_signals3,'b',linewidth = 5 , label="time_s 3" )
+envAxe3.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe3.grid( True )
+
+envAxe4      = fig3.add_subplot ( 3,3,7 )
+origenv.set_title("Diff-Rect Senial Segmentada4",rotation=0,fontsize=10,va="center")
+envs4Ln,    = plt.plot( tData,diff_rect_signals4,'c',linewidth = 5 , label="time_s 4" )
+envAxe4.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe4.grid( True )
+
+envAxe5      = fig3.add_subplot ( 3,3,8 )
+origenv.set_title("Diff-Rect Senial Segmentada5",rotation=0,fontsize=10,va="center")
+envs5Ln,    = plt.plot( tData,diff_rect_signals5,'m',linewidth = 5 , label="time_s 5" )
+envAxe5.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe5.grid( True )
+
+envAxe6      = fig3.add_subplot ( 3,3,9 )
+origenv.set_title("Diff-Rect Senial Segmentada6",rotation=0,fontsize=10,va="center")
+envs6Ln,    = plt.plot( tData,diff_rect_signals6,'k',linewidth = 5 , label="time_s 6" )
+envAxe6.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe6.grid( True )
+
+#M-1 primera convolucion, pero la derivada es una convolucion a 2 por lo que....no requiero de 1
+extra_t = np.arange(N+M,(N+M+N-1),1)
+extra_t = extra_t/fs
+tData = np.concatenate((tData,extra_t)) 
+
+#NEW FIGURE
+
+fig5    = plt.figure ( 5 )
+fig5.suptitle('Paso 7: Comb Filter', fontsize=16)
+
+# ENV ORIGINAL DE LA SIGNAL
+origencomb     = fig5.add_subplot ( 3,1,1 )
+origencomb.set_title("Comb Filter Original",rotation=0,fontsize=10,va="center")
+origencomb.set_title("Comb Filter Original",rotation=0,fontsize=10,va="center")
+origencombLn,  = plt.plot( tData,comb1_signal,'b-o',linewidth=4,alpha=0.5,label="time inverse") 
+#origencomb.set_xlim ( ((M+N-1)/2)/fs    ,(N+(M+N-1)/2)/fs )
+origencomb.grid( True )
+
+
+# ENV SEGMENTADA DE LA SIGNAL
+combAxe1      = fig5.add_subplot ( 3,3,4 )
+combAxe1.set_title("Comb Filter Segmentada1",rotation=0,fontsize=10,va="center")
+combs1Ln,    = plt.plot( tData,comb1_signals1,'r',linewidth = 5 , label="time_s 1" )
+combAxe1.set_xlim ( 0.5    ,0.52 )
+combAxe1.grid( True )
+
+combAxe2      = fig5.add_subplot ( 3,3,5 )
+combAxe2.set_title("Comb Filter Segmentada2",rotation=0,fontsize=10,va="center")
+combs2Ln,    = plt.plot( tData,comb1_signals2,'g',linewidth = 5 , label="time_s 2" )
+#combAxe2.set_xlim ( ((M+N-1)/2)/fs    ,(N+(M+N-1)/2)/fs )
+combAxe2.grid( True )
+
+combAxe3      = fig5.add_subplot ( 3,3,6 )
+combAxe3.set_title("Comb Filter Segmentada3",rotation=0,fontsize=10,va="center")
+combs3Ln,    = plt.plot( tData,comb1_signals3,'b',linewidth = 5 , label="time_s 3" )
+#combAxe3.set_xlim ( ((M+N-1)/2)/fs    ,(N+(M+N-1)/2)/fs )
+combAxe3.grid( True )
+
+combAxe4      = fig5.add_subplot ( 3,3,7 )
+combAxe4.set_title("Comb Filter Segmentada4",rotation=0,fontsize=10,va="center")
+combs4Ln,    = plt.plot( tData,comb1_signals4,'c',linewidth = 5 , label="time_s 4" )
+combAxe4.set_xlim ( ((M+N-1)/2)/fs    ,(N+(M+N-1)/2)/fs )
+combAxe4.grid( True )
+
+combAxe5      = fig5.add_subplot ( 3,3,8 )
+combAxe5.set_title("Comb Filter Segmentada5",rotation=0,fontsize=10,va="center")
+combs5Ln,    = plt.plot( tData,comb1_signals5,'m',linewidth = 5 , label="time_s 5" )
+combAxe5.set_xlim ( ((M+N-1)/2)/fs    ,(N+(M+N-1)/2)/fs )
+combAxe5.grid( True )
+
+combAxe6      = fig5.add_subplot ( 3,3,9 )
+combAxe6.set_title("Comb Filter Segmentada6",rotation=0,fontsize=10,va="center")
+combs6Ln,    = plt.plot( tData,comb1_signals6,'k',linewidth = 5 , label="time_s 6" )
+combAxe6.set_xlim ( ((M+N-1)/2)/fs    ,(N+(M+N-1)/2)/fs )
+combAxe6.grid( True )
+
+
+
+plt.show()
+
+
+"""
 #GRAFICAS
 
 fig    = plt.figure ( 1 )
@@ -299,8 +539,8 @@ extra_t = extra_t/fs
 tData = np.concatenate((tData,extra_t)) 
 
 #FIGURA 3 
-fig3    = plt.figure ( 4 )
-fig3.suptitle('Paso 4: Envolvente de la senial', fontsize=16)
+fig3    = plt.figure ( 3 )
+fig3.suptitle('Paso 2: Envolvente de la senial', fontsize=16)
 
 # ENV ORIGINAL DE LA SIGNAL
 origenv     = fig3.add_subplot ( 3,1,1 )
@@ -315,9 +555,9 @@ origenv.grid( True )
 envAxe1      = fig3.add_subplot ( 3,3,4 )
 envAxe1.set_title("Envolvente Senial Segmentada1",rotation=0,fontsize=10,va="center")
 envs1Ln,    = plt.plot( tData,np.real(env_signals1),'r',linewidth = 5 , label="time_s 1" )
-dif1Ln,    = plt.plot( tData,time_signals1_ext,'b',linewidth = 3 ,alpha=0.5, label="time_s 1" )
-#envAxe1.set_xlim ( ((M-1)/2)/fs    ,(N+(M-1)/2)/fs )
-envAxe1.set_xlim ( 0.2    ,0.22 )
+dif1Ln,    = plt.plot( tData,time_signals1_ext,'b',linewidth = 1 ,alpha=0.2, label="time_s 1" )
+envAxe1.set_xlim ( ((M-1)/2)/fs    ,(N+(M-1)/2)/fs )
+#envAxe1.set_xlim ( 0    ,0.02 )
 envAxe1.grid( True )
 
 envAxe2      = fig3.add_subplot ( 3,3,5 )
@@ -352,8 +592,8 @@ envAxe6.grid( True )
 
 
 #FIGURA 4 
-fig4    = plt.figure ( 3 )
-fig4.suptitle('Paso 3 Rectificacion de Onda Completa de la senial', fontsize=16)
+fig4    = plt.figure ( 4 )
+fig4.suptitle('Paso 2: Rectificacion de Onda Completa de la senial', fontsize=16)
 
 # IFFT ORIGINAL DE LA SIGNAL
 dif     = fig4.add_subplot ( 3,1,1 )
@@ -401,53 +641,5 @@ dif6.set_xlim ( 0    ,0.02 )
 dif6.grid( True )
 
 
-
-
-
-
-plt.show()
-
-"""
-
-#----------BLACKMAN----------------------------
-
-winData=np.blackman(M)
-#winData=np.hamming(M) 
-#winData=sc.gaussian(M,20)
-
-winAxe       = fig.add_subplot(3,1,3)
-winAxe.set_title("Window",rotation=0,fontsize=10,va="center")
-winLn, = plt.plot(nData[:M],winData,'b-o',linewidth=4,alpha=0.5,label="Abs")
-winAxe.grid(True)
-##------------SIGNAL IFFT-----------------------
-fftDataShifted = np.fft.fftshift(fftData)
-ifftData       = np.fft.ifft(fftDataShifted)
-ifftDataShifted= np.fft.fftshift(ifftData)
-ifftDataShifted= ifftDataShifted[N//2-M//2:N//2+M//2]
-
-#------aplico ventaneo ----------------------
-#ifftDataShifted*=winData
-
-ifftDataShifted = np.concatenate((ifftDataShifted,np.zeros(N-M)))
-
-ifftAxe = fig.add_subplot(3,1,2)
-ifftAxe.set_title("Potencia calculada en Tiempo: {0:.2f}".format(np.sum(np.abs(ifftData)**2)),rotation=0,fontsize=10,va="center")
-ifftRLn, = plt.plot(tData,np.real(ifftDataShifted),'b-o' ,linewidth  = 5,alpha = 0.5,label="Signal real")
-ifftILn, = plt.plot(tData,np.imag(ifftDataShifted),'r-o' ,linewidth  = 5,alpha = 0.2,label="Signal imag")
-fftAxe.grid(True)
-
-
-#----------FFT----------------------------
-fftData        = np.fft.fft(ifftDataShifted)
-fftDataShifted = np.fft.fftshift(fftData)
-
-fftAxe       = fig.add_subplot(3,2,2)
-fftAxe.set_title("Potencia calculada en fft: {0:.2f}".format(np.sum(np.abs(fftData)**2)/N),rotation=0,fontsize=10,va="center")
-penAbsLn, = plt.plot(fData,np.abs(fftDataShifted)**2,'b-o',linewidth=4,alpha=0.5,label="Abs")
-#penRLn, = plt.plot(fData,np.real(fftDataShifted),'b-o',linewidth=4,alpha=0.5,label="real")
-#penILn  = plt.plot(fData,np.imag(fftDataShifted),'r-o',linewidth=4,alpha=0.2,label="imag")
-fftAxe.grid(True)
-###--------------------------------------
-plt.get_current_fig_manager().window.showMaximized()
 plt.show()
 """

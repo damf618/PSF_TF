@@ -65,13 +65,13 @@ env_signals4 = np.zeros(N).astype("complex")
 env_signals5 = np.zeros(N).astype("complex")
 env_signals6 = np.zeros(N).astype("complex")
 
-diff_rect_signals1 = np.zeros(N).astype("complex")
-diff_rect_signals2 = np.zeros(N).astype("complex")
-diff_rect_signals3 = np.zeros(N).astype("complex")
-diff_rect_signals4 = np.zeros(N).astype("complex")
-diff_rect_signals5 = np.zeros(N).astype("complex")
-diff_rect_signals6 = np.zeros(N).astype("complex")
-
+diff_rect_signal = np.zeros(9600).astype("complex")
+diff_rect_signals1 = np.zeros(9600).astype("complex")
+diff_rect_signals2 = np.zeros(9600).astype("complex")
+diff_rect_signals3 = np.zeros(9600).astype("complex")
+diff_rect_signals4 = np.zeros(9600).astype("complex")
+diff_rect_signals5 = np.zeros(9600).astype("complex")
+diff_rect_signals6 = np.zeros(9600).astype("complex")
 
 #--------------------------------------
 
@@ -216,46 +216,116 @@ env_signals6 = np.fft.ifft(K*env_signals6*filter_h)
 # Diferenciacion
 diferenciador = np.array(([1,-1]))
 
-diff_rect_signal = np.convolve(env_signal,diferenciador)
+diff_signal = np.convolve(env_signal,diferenciador)
 
-diff_rect_signals1 = np.convolve(env_signals1,diferenciador)
-diff_rect_signals2 = np.convolve(env_signals2,diferenciador)
-diff_rect_signals3 = np.convolve(env_signals3,diferenciador)
-diff_rect_signals4 = np.convolve(env_signals4,diferenciador)
-diff_rect_signals5 = np.convolve(env_signals5,diferenciador)
-diff_rect_signals6 = np.convolve(env_signals6,diferenciador)
+diff_signals1 = np.convolve(env_signals1,diferenciador)
+diff_signals2 = np.convolve(env_signals2,diferenciador)
+diff_signals3 = np.convolve(env_signals3,diferenciador)
+diff_signals4 = np.convolve(env_signals4,diferenciador)
+diff_signals5 = np.convolve(env_signals5,diferenciador)
+diff_signals6 = np.convolve(env_signals6,diferenciador)
+
+print(len(diff_signal))
 
 #Rectificacion de Media Onda
-for i in range(len(diff_rect_signals1)):
-    if(diff_rect_signal[i]<0):
+for i in range(len(diff_signal)):
+    if(diff_signal[i]<0):
         diff_rect_signal[i] = 0
+    else:
+        diff_rect_signal[i] = diff_signal[i]
     
-    if(diff_rect_signals1[i]<0):
+    if(diff_signals1[i]<0):
         diff_rect_signals1[i] = 0
+    else:
+        diff_rect_signals1[i] = diff_signals1[i]
 
-    if(diff_rect_signals2[i]<0):
+    if(diff_signals2[i]<0):
         diff_rect_signals2[i] = 0
+    else:
+        diff_rect_signals2[i] = diff_signals2[i]
 
+    if(diff_signals3[i]<0):
+        diff_rect_signals3[i] = 0
+    else:
+        diff_rect_signals3[i] = diff_signals3[i]    
     if(diff_rect_signals3[i]<0):
         diff_rect_signals3[i] = 0
-    
-    if(diff_rect_signals4[i]<0):
+
+    if(diff_signals4[i]<0):
         diff_rect_signals4[i] = 0
+    else:
+        diff_rect_signals4[i] = diff_signals4[i]
 
-    if(diff_rect_signals5[i]<0):
-        diff_rect_signals5[i] = 0
+    if(diff_signals5[i]<0):
+            diff_rect_signals5[i] = 0
+    else:
+        diff_rect_signals5[i] = diff_signals5[i]
+    
+    if(diff_signals6[i]<0):
+            diff_rect_signals6[i] = 0
+    else:
+        diff_rect_signals6[i] = diff_signals6[i]
 
-    if(diff_rect_signals6[i]<0):
-        diff_rect_signals6[i] = 0
 
 #M-1 primera convolucion, pero la derivada es una convolucion a 2 por lo que....no requiero de 1
 extra_t = np.arange(N,N+M,1)
 extra_t = extra_t/fs
 tData = np.concatenate((tData,extra_t)) 
 
+
+#FIGURA 4 
+fig4    = plt.figure ( 3 )
+fig4.suptitle('Paso 5: Dericada de la Envolvente de la senial', fontsize=16)
+
+# IFFT ORIGINAL DE LA SIGNAL
+dif     = fig4.add_subplot ( 3,1,1 )
+dif.set_title("Senial Original Envolvente Derivada",rotation=0,fontsize=10,va="center")
+difLn,  = plt.plot( tData,diff_signal,'b-o',linewidth=4,alpha=0.5,label="time inverse") 
+dif.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif.grid( True )
+
+
+# IFFT SEGMENTADA DE LA SIGNAL
+dif1      = fig4.add_subplot ( 3,3,4 )
+dif1.set_title("Senial Segmentada1 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif1Ln,    = plt.plot( tData,diff_signals1,'r',linewidth = 5 , label="time_s 1" )
+dif1.set_xlim ( 0.5    ,0.52 )
+dif1.grid( True )
+
+dif2      = fig4.add_subplot ( 3,3,5 )
+dif2.set_title("Senial Segmentada2 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif2Ln,    = plt.plot( tData,diff_signals2,'g',linewidth = 5 , label="time_s 2" )
+dif2.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif2.grid( True )
+
+dif3      = fig4.add_subplot ( 3,3,6 )
+dif3.set_title("Senial Segmentada3 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif3Ln,    = plt.plot( tData,diff_signals3,'b',linewidth = 5 , label="time_s 3" )
+dif3.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif3.grid( True )
+
+dif4      = fig4.add_subplot ( 3,3,7 )
+dif4.set_title("Senial Segmentada4 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif4Ln,    = plt.plot( tData,diff_signals4,'c',linewidth = 5 , label="time_s 4" )
+dif4.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif4.grid( True )
+
+dif5      = fig4.add_subplot ( 3,3,8 )
+dif5.set_title("Senial Segmentada5 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif5Ln,    = plt.plot( tData,diff_signals5,'m',linewidth = 5 , label="time_s 5" )
+dif5.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif5.grid( True )
+
+dif6      = fig4.add_subplot ( 3,3,9 )
+dif6.set_title("Senial Segmentada6 Envolvente Derivada",rotation=0,fontsize=10,va="center")
+dif6Ln,    = plt.plot( tData,diff_signals6,'k',linewidth = 5 , label="time_s 6" )
+dif6.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+dif6.grid( True )
+
+
 #FIGURA 3 
-fig3    = plt.figure ( 3 )
-fig3.suptitle('Paso 4: Diferenciacion y Rectificacion de la senial', fontsize=16)
+fig3    = plt.figure ( 4 )
+fig3.suptitle('Paso 6: Rectificacion de la derivada de la senial', fontsize=16)
 
 # ENV ORIGINAL DE LA SIGNAL
 origenv     = fig3.add_subplot ( 3,1,1 )
@@ -269,37 +339,37 @@ origenv.grid( True )
 envAxe1      = fig3.add_subplot ( 3,3,4 )
 envAxe1.set_title("Diff-Rect Senial Segmentada1",rotation=0,fontsize=10,va="center")
 envs1Ln,    = plt.plot( tData,diff_rect_signals1,'r',linewidth = 5 , label="time_s 1" )
-envAxe1.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe1.set_xlim ( 0.5    ,0.52 )
 envAxe1.grid( True )
 
 envAxe2      = fig3.add_subplot ( 3,3,5 )
 envAxe2.set_title("Diff-Rect Senial Segmentada2",rotation=0,fontsize=10,va="center")
 envs2Ln,    = plt.plot( tData,diff_rect_signals2,'g',linewidth = 5 , label="time_s 2" )
-envAxe1.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe2.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
 envAxe2.grid( True )
 
 envAxe3      = fig3.add_subplot ( 3,3,6 )
 envAxe3.set_title("Diff-Rect Senial Segmentada3",rotation=0,fontsize=10,va="center")
 envs3Ln,    = plt.plot( tData,diff_rect_signals3,'b',linewidth = 5 , label="time_s 3" )
-envAxe1.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe3.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
 envAxe3.grid( True )
 
 envAxe4      = fig3.add_subplot ( 3,3,7 )
 origenv.set_title("Diff-Rect Senial Segmentada4",rotation=0,fontsize=10,va="center")
 envs4Ln,    = plt.plot( tData,diff_rect_signals4,'c',linewidth = 5 , label="time_s 4" )
-envAxe1.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe4.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
 envAxe4.grid( True )
 
 envAxe5      = fig3.add_subplot ( 3,3,8 )
 origenv.set_title("Diff-Rect Senial Segmentada5",rotation=0,fontsize=10,va="center")
 envs5Ln,    = plt.plot( tData,diff_rect_signals5,'m',linewidth = 5 , label="time_s 5" )
-envAxe1.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe5.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
 envAxe5.grid( True )
 
 envAxe6      = fig3.add_subplot ( 3,3,9 )
 origenv.set_title("Diff-Rect Senial Segmentada6",rotation=0,fontsize=10,va="center")
 envs6Ln,    = plt.plot( tData,diff_rect_signals6,'k',linewidth = 5 , label="time_s 6" )
-envAxe1.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
+envAxe6.set_xlim ( ((M)/2)/fs    ,(N+(M)/2)/fs )
 envAxe6.grid( True )
 
 plt.show()
