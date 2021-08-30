@@ -116,19 +116,13 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 	q15_t derivative_filter[]={1,-11};
 
 	/*** RFFT ***/
-	/*arm_rfft_instance_q15 S;
-	q15_t samples_fft[2*N_DOWNSAMPLING];
-	arm_rfft_init_q15(&S,N_DOWNSAMPLING,0,1); // inicializa una estructira que usa la funcion fft para procesar los datos. Notar el /2 para el largo
-	arm_rfft_q15( &S,samples,samples_fft);
-	*/
 	cfft_q15(samples,complex);
 
 	/*** FILTRADO EN CORTE POR FRECUENCIAS ***/
-/*
 	//Eliminado de componente DC
 	complex[0] = 0;
 	complex[1] = 0;
-*/
+
 	//BORRADO EFICIENTE DE AMBOS EXTREMOS
 	for(uint8_t j=1;j<N_FREQUENCIES;j++)
 	{
@@ -154,8 +148,6 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 			}
 		}
 		/*** IFFT ***/
-		//arm_rfft_init_q15 ( &S,N_DOWNSAMPLING,1,1);
-		//arm_rfft_q15	  ( &S,seg_fft, samples);	// Parte real de la transformada inversa de Fourier
 		cifft_q15(seg_fft, samples);
 
 		//TODO VALIDACION SEGMENTACION DE FRECUENCIAS
@@ -202,7 +194,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		conv_q15(samples,hanning,HANNING_LENGTH);
 
 		//TODO VALIDACION FILTRO_HANNING
-		gpioToggle ( LEDR );
+		/*gpioToggle ( LEDR );
 		for(uint16_t i = 0;i<N_DOWNSAMPLING;i++)
 		{
 			uartWriteByteArray ( UART_USB ,(uint8_t* )&samples[i], sizeof(samples[0]) );
@@ -211,7 +203,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		header.id++;
 		uartWriteByteArray ( UART_USB ,(uint8_t*)&header ,sizeof(struct header_struct ));
 		//}
-	break;
+	break;*/
 
 		/***----*** MOD 3 ***----***/
 		/*      DERIVATIVE HALF-RECT   */
@@ -229,7 +221,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 		header.id++;
 		uartWriteByteArray ( UART_USB ,(uint8_t*)&header ,sizeof(struct header_struct ));
 		//}
-	break;
+	break;*/
 
 		//RECTIFICACION DE 1/2 ONDA
 		for (uint16_t i =0;i<N_DOWNSAMPLING;i++)
@@ -240,8 +232,7 @@ void freq_segmentation( q15_t* samples,uint16_t* freq_range, uint16_t fs)
 				samples[i]=0;
 			}
 		}
-		//TODO VALIDACION DERIVADA
-
+		//TODO RECTIFICACION 1/2 ONDA
 		gpioToggle ( LEDR );
 		for(uint16_t i = 0;i<N_DOWNSAMPLING;i++)
 		{
